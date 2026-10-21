@@ -6,7 +6,7 @@ A classic Snake arcade game with a modern neon-inspired design, glowing visuals,
 
 🖼️ Game Preview
 
-"Neon Snake Game Preview" (game-preview.jpg)
+"Neon Snake Game Preview" (Game-preview.jpg)
 
 ✨ Features
 
