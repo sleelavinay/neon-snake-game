@@ -5,6 +5,8 @@ A modern, neon-themed take on the classic Snake arcade game, built with HTML, CS
 <p align="center">
   <strong>🎮 Play the Game</strong><br>
   https://sleelavinay.github.io/neon-snake-game/
+  ## 🎮 Game Preview
+  ![Neon Snake Game Preview](game-preview.jpg)
 </p>✨ Features
 
 - 🎨 Neon-inspired dark interface
