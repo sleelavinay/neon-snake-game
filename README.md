@@ -1,58 +1,58 @@
-🐍 Neon Snake
+🎮 Neon Snake Game
 
-A modern, neon-themed take on the classic Snake arcade game, built with HTML, CSS, and JavaScript.
+A classic Snake arcade game with a modern neon-inspired design, glowing visuals, and touch-friendly controls.
 
-<p align="center">
-  <strong>🎮 Play the Game</strong><br>
-  https://sleelavinay.github.io/neon-snake-game/
-  ## 🎮 Game Preview
-  ![Neon Snake Game Preview](game-preview.jpg)
-</p>✨ Features
+"▶ Play the Game" (https://sleelavinay.github.io/neon-snake-game/)
 
-- 🎨 Neon-inspired dark interface
-- 📱 Mobile-friendly touch controls
+🖼️ Game Preview
+
+"Neon Snake Game Preview" (game-preview.jpg)
+
+✨ Features
+
+- 🎨 Dark interface with neon-green accents
+- 🐍 Classic Snake gameplay
+- 📊 Current score and best score display
+- 🎮 On-screen directional controls for mobile
 - ⌨️ Keyboard arrow-key controls
-- 🏆 Live score and best score tracking during the visit
-- ⚡ Increasing difficulty as your score grows
-- 🔄 Restart and replay options
-- 🌐 Runs directly in the browser
+- 🔄 Restart and play-again options
+- 📱 Browser-based gameplay
 
 🕹️ How to Play
 
-1. Open the live game using the link above.
-2. Tap Start Game.
-3. Use the on-screen arrow buttons or keyboard arrow keys to control the snake.
-4. Eat the glowing food to earn points.
-5. Avoid hitting the walls or your own tail.
+1. Open the "live game" (https://sleelavinay.github.io/neon-snake-game/).
+2. Use the arrow keys or on-screen directional buttons to move the snake.
+3. Eat the food to increase your score.
+4. Avoid hitting the walls or the snake's own body.
+5. Restart the game when you want to play again.
 
-🛠️ Built With
+🛠️ Technologies Used
 
-- HTML5
-- CSS3
+- HTML
+- CSS
 - JavaScript
-- HTML Canvas API
-- GitHub Pages
 
 🚀 Run Locally
 
-1. Clone or download this repository.
-2. Open "index.html" in a modern web browser.
-3. Start playing!
+1. Clone this repository:
+   
+   git clone https://github.com/sleelavinay/neon-snake-game.git
 
-No external libraries or installation are required.
+2. Open the project folder.
 
-📚 What I Learned
+3. Open "index.html" in your browser.
 
-This project gave me practical experience with JavaScript game logic, keyboard and touch events, collision detection, canvas rendering, and publishing a static website using GitHub Pages.
+🎯 Project Goal
 
-🔮 Future Improvements
+This project helped me practise front-end development, interactive game logic, and browser-based user interfaces.
 
-- Save the best score between visits
-- Add sound effects and difficulty selection
-- Add pause and resume functionality
-- Improve accessibility and gameplay options
+👨‍💻 Author
+
+Leela Vinay Sammeta
+
+- GitHub: "@sleelavinay" (https://github.com/sleelavinay)
+- Live Demo: "Neon Snake Game" (https://sleelavinay.github.io/neon-snake-game/)
 
 ---
 
-Developer: "sleelavinay" (https://github.com/sleelavinay)
-Live Demo: https://sleelavinay.github.io/neon-snake-game/
+⭐ If you enjoy the game, consider starring the repository.
