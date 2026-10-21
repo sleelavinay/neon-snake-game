@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d11">
-<meta name="description" content="A neon-themed Snake arcade game with keyboard and touch controls.">
+<meta name="description" content="A neon-themed Snake arcade game with keyboard, touch, and pause controls.">
 <title>Neon Snake | Arcade</title>
 <style>
 :root{color-scheme:dark;--neon:#7cff6b;--bg:#080d11;--panel:#111923;--border:#34443a;--muted:#91a29a}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;padding:24px 14px;background:radial-gradient(ellipse at top,#15251e,var(--bg) 65%);color:#eef5ef;font-family:system-ui,sans-serif;display:flex;justify-content:center}
+body{margin:0;min-height:100vh;padding:24px 14px;background:radial-gradient(ellipse at top,#15251e,var(--bg) 65%);color:#eef5ef;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;justify-content:center}
 main{width:min(100%,440px)}header{text-align:center;margin-bottom:20px}h1{margin:0;font-size:clamp(1.8rem,8vw,2rem);letter-spacing:3px}h1 span{color:var(--neon)}header p{color:var(--muted);margin:8px 0 0}
 .stats{display:flex;gap:12px;margin-bottom:12px}.stat{flex:1;padding:12px;text-align:center;background:var(--panel);border:1px solid #28352f;border-radius:12px}.stat small{display:block;color:var(--muted)}.stat strong{display:block;color:var(--neon);font-size:1.35rem}
 .board{padding:8px;background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 0 28px #7cff6b0d}canvas{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:9px;background:#080d11;touch-action:none}
 .status{min-height:24px;text-align:center;color:#b3c3b8;margin:12px 0}.actions{display:flex;gap:10px}
-button{border:1px solid #3c5942;border-radius:10px;background:#18251c;color:var(--neon);padding:12px;font:inherit;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}button:active{transform:scale(.97)}.actions button{flex:1}
+button{border:1px solid #3c5942;border-radius:10px;background:#18251c;color:var(--neon);padding:12px;font:inherit;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}button:active{transform:scale(.97)}button:disabled{opacity:.4;cursor:not-allowed}.actions button{flex:1}
 .controls{width:190px;margin:18px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.controls button{font-size:1.2rem;padding:12px 0;min-height:58px}.empty{visibility:hidden}footer{color:#788980;font-size:.8rem;text-align:center;margin-top:20px}
 @media(max-width:360px){body{padding:18px 10px}.stat{padding:9px 5px}.controls{width:174px}}
 </style>
@@ -25,37 +25,41 @@ button{border:1px solid #3c5942;border-radius:10px;background:#18251c;color:var(
 <section class="stats" aria-label="Game statistics"><div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>BEST SCORE</small><strong id="best">0</strong></div></section>
 <div class="board"><canvas id="game" width="360" height="360" aria-label="Snake game board"></canvas></div>
 <p class="status" id="status" aria-live="polite">Press Start to play</p>
-<div class="actions"><button id="start" type="button">▶ Start Game</button><button id="restart" type="button">↻ Restart</button></div>
+<div class="actions"><button id="start" type="button">▶ Start Game</button><button id="pause" type="button" disabled>⏸ Pause</button><button id="restart" type="button">↻ Restart</button></div>
 <div class="controls" aria-label="Touch controls"><span class="empty"></span><button data-dir="up" aria-label="Up">▲</button><span class="empty"></span><button data-dir="left" aria-label="Left">◀</button><button data-dir="down" aria-label="Down">▼</button><button data-dir="right" aria-label="Right">▶</button></div>
-<footer>Use arrow keys or touch controls · Eat food · Avoid walls and yourself</footer>
+<footer>Use arrow keys or touch controls · Eat food · Avoid walls and yourself · Press P to pause</footer>
 </main>
 <script>
 (() => {
 "use strict";
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
-const scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),statusEl=document.getElementById("status"),startBtn=document.getElementById("start"),restartBtn=document.getElementById("restart");
+const scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),statusEl=document.getElementById("status"),startBtn=document.getElementById("start"),pauseBtn=document.getElementById("pause"),restartBtn=document.getElementById("restart");
 const SIZE=18,CELLS=canvas.width/SIZE,KEY="neonSnakeBest";
-let snake,food,direction,nextDirection,score=0,running=false,ended=false,timer=null;
+let snake,food,direction,nextDirection,score=0,running=false,paused=false,ended=false,timer=null;
 function loadBest(){try{const n=Number(localStorage.getItem(KEY));return Number.isFinite(n)&&n>=0?Math.floor(n):0}catch(e){return 0}}
 let best=loadBest();
 function saveBest(){try{localStorage.setItem(KEY,String(best))}catch(e){}}
 function updateScore(){scoreEl.textContent=score;bestEl.textContent=best}
-function reset(){clearInterval(timer);timer=null;snake=[{x:6,y:10},{x:5,y:10},{x:4,y:10}];direction={x:1,y:0};nextDirection={x:1,y:0};score=0;running=false;ended=false;updateScore();statusEl.textContent="Ready? Press Start!";startBtn.textContent="▶ Start Game";placeFood();draw()}
-function placeFood(){const empty=[];for(let y=0;y<CELLS;y++)for(let x=0;x<CELLS;x++)if(!snake.some(p=>p.x===x&&p.y===y))empty.push({x,y});food=empty.length?empty[Math.floor(Math.random()*empty.length)]:null;if(!food){running=false;ended=true;clearInterval(timer);statusEl.textContent="You win! You filled the board!";startBtn.textContent="▶ Play Again"}}
-function draw(){ctx.fillStyle="#080d11";ctx.fillRect(0,0,360,360);ctx.strokeStyle="#15221b";ctx.lineWidth=.5;for(let i=0;i<=CELLS;i++){let p=i*SIZE+.5;ctx.beginPath();ctx.moveTo(p,0);ctx.lineTo(p,360);ctx.stroke();ctx.beginPath();ctx.moveTo(0,p);ctx.lineTo(360,p);ctx.stroke()}
+function updateButtons(){pauseBtn.disabled=!running&&!paused;pauseBtn.textContent=paused?"▶ Resume":"⏸ Pause";startBtn.textContent=running?"▶ Playing":ended?"▶ Play Again":paused?"▶ Playing":"▶ Start Game"}
+function stopTimer(){if(timer!==null){clearInterval(timer);timer=null}}
+function setTimer(){stopTimer();timer=setInterval(tick,Math.max(65,140-Math.floor(score/50)*8))}
+function reset(){stopTimer();snake=[{x:6,y:10},{x:5,y:10},{x:4,y:10}];direction={x:1,y:0};nextDirection={x:1,y:0};score=0;running=false;paused=false;ended=false;updateScore();statusEl.textContent="Ready? Press Start!";updateButtons();placeFood();draw()}
+function placeFood(){const empty=[];for(let y=0;y<CELLS;y++)for(let x=0;x<CELLS;x++)if(!snake.some(p=>p.x===x&&p.y===y))empty.push({x,y});food=empty.length?empty[Math.floor(Math.random()*empty.length)]:null;if(!food){running=false;paused=false;ended=true;stopTimer();statusEl.textContent="You win! You filled the board!";updateButtons()}}
+function draw(){ctx.fillStyle="#080d11";ctx.fillRect(0,0,360,360);ctx.strokeStyle="#15221b";ctx.lineWidth=.5;for(let i=0;i<=CELLS;i++){const p=i*SIZE+.5;ctx.beginPath();ctx.moveTo(p,0);ctx.lineTo(p,360);ctx.stroke();ctx.beginPath();ctx.moveTo(0,p);ctx.lineTo(360,p);ctx.stroke()}
 if(food){ctx.fillStyle="#ff647c";ctx.shadowColor="#ff647c";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(food.x*SIZE+9,food.y*SIZE+9,SIZE*.32,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0}
 snake.forEach((p,i)=>{ctx.fillStyle=i===0?"#b4ff9b":"#57d96a";ctx.shadowColor="#57d96a";ctx.shadowBlur=i===0?12:4;ctx.beginPath();ctx.roundRect(p.x*SIZE+2,p.y*SIZE+2,SIZE-4,SIZE-4,5);ctx.fill()});ctx.shadowBlur=0;
-if(!running){ctx.fillStyle="#080d11bb";ctx.fillRect(0,0,360,360);ctx.fillStyle="#b4ff9b";ctx.font="bold 20px system-ui";ctx.textAlign="center";ctx.fillText(ended?"GAME OVER":"NEON SNAKE",180,170);ctx.fillStyle="#d0ddd3";ctx.font="13px system-ui";ctx.fillText(ended?"Tap Restart to try again":"Press Start to begin",180,195)}}
-function tick(){direction=nextDirection;const head={x:snake[0].x+direction.x,y:snake[0].y+direction.y},eating=Boolean(food&&head.x===food.x&&head.y===food.y),body=eating?snake:snake.slice(0,-1);
-if(head.x<0||head.x>=CELLS||head.y<0||head.y>=CELLS||body.some(p=>p.x===head.x&&p.y===head.y)){running=false;ended=true;clearInterval(timer);timer=null;startBtn.textContent="▶ Play Again";statusEl.textContent="Game over! Final score: "+score;draw();return}
-snake.unshift(head);if(eating){score+=10;if(score>best){best=score;saveBest()}updateScore();placeFood();if(ended){draw();return}clearInterval(timer);timer=setInterval(tick,Math.max(65,140-Math.floor(score/50)*8))}else snake.pop();draw()}
-function start(){if(running)return;if(ended)reset();running=true;statusEl.textContent="Good luck! Keep going.";startBtn.textContent="▶ Playing";clearInterval(timer);timer=setInterval(tick,Math.max(65,140-Math.floor(score/50)*8));draw()}
-function change(name){const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}},n=dirs[name];if(!n)return;if(n.x===-direction.x&&n.y===-direction.y)return;nextDirection=n;if(!running&&!ended)start()}
-document.addEventListener("keydown",e=>{const keys={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",w:"up",W:"up",s:"down",S:"down",a:"left",A:"left",d:"right",D:"right"};if(keys[e.key]){e.preventDefault();change(keys[e.key])}if(e.key===" "&&!running){e.preventDefault();start()}});
+if(!running&&!paused){ctx.fillStyle="#080d11bb";ctx.fillRect(0,0,360,360);ctx.fillStyle="#b4ff9b";ctx.font="bold 20px system-ui";ctx.textAlign="center";ctx.fillText(ended?"GAME OVER":"NEON SNAKE",180,170);ctx.fillStyle="#d0ddd3";ctx.font="13px system-ui";ctx.fillText(ended?"Tap Restart to try again":"Press Start to begin",180,195)}
+if(paused){ctx.fillStyle="#080d11bb";ctx.fillRect(0,0,360,360);ctx.fillStyle="#b4ff9b";ctx.font="bold 24px system-ui";ctx.textAlign="center";ctx.fillText("PAUSED",180,175);ctx.fillStyle="#d0ddd3";ctx.font="13px system-ui";ctx.fillText("Tap Resume or press P",180,200)}}
+function tick(){if(!running||paused)return;direction=nextDirection;const head={x:snake[0].x+direction.x,y:snake[0].y+direction.y},eating=Boolean(food&&head.x===food.x&&head.y===food.y),body=eating?snake:snake.slice(0,-1);
+if(head.x<0||head.x>=CELLS||head.y<0||head.y>=CELLS||body.some(p=>p.x===head.x&&p.y===head.y)){running=false;paused=false;ended=true;stopTimer();statusEl.textContent="Game over! Final score: "+score;updateButtons();draw();return}
+snake.unshift(head);if(eating){score+=10;if(score>best){best=score;saveBest()}updateScore();placeFood();if(ended){updateButtons();draw();return}setTimer()}else snake.pop();draw()}
+function start(){if(running)return;if(ended)reset();paused=false;running=true;statusEl.textContent="Good luck! Keep going.";updateButtons();setTimer();draw()}
+function togglePause(){if(paused){paused=false;running=true;statusEl.textContent="Game resumed.";updateButtons();setTimer();draw();return}if(!running)return;paused=true;running=false;stopTimer();statusEl.textContent="Game paused.";updateButtons();draw()}
+function change(name){const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}},n=dirs[name];if(!n)return;if(n.x===-direction.x&&n.y===-direction.y)return;nextDirection=n;if(!running&&!paused&&!ended)start();else if(paused){paused=false;running=true;statusEl.textContent="Good luck! Keep going.";updateButtons();setTimer();draw()}}
+document.addEventListener("keydown",e=>{const keys={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",w:"up",W:"up",s:"down",S:"down",a:"left",A:"left",d:"right",D:"right"};if(keys[e.key]){e.preventDefault();change(keys[e.key])}if(e.key===" "&&!running&&!paused){e.preventDefault();start()}if(e.key==="p"||e.key==="P"){e.preventDefault();togglePause()}});
 document.querySelectorAll("[data-dir]").forEach(b=>b.addEventListener("click",()=>change(b.dataset.dir)));
-startBtn.addEventListener("click",start);restartBtn.addEventListener("click",reset);
-let touch=null;canvas.addEventListener("touchstart",e=>{const t=e.changedTouches[0];touch={x:t.clientX,y:t.clientY}},{passive:true});
-canvas.addEventListener("touchend",e=>{if(!touch)return;const t=e.changedTouches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;if(Math.max(Math.abs(dx),Math.abs(dy))>20)change(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"));touch=null},{passive:true});
+startBtn.addEventListener("click",start);pauseBtn.addEventListener("click",togglePause);restartBtn.addEventListener("click",reset);
+let touch=null;canvas.addEventListener("touchstart",e=>{const t=e.changedTouches[0];touch={x:t.clientX,y:t.clientY}},{passive:true});canvas.addEventListener("touchend",e=>{if(!touch)return;const t=e.changedTouches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;if(Math.max(Math.abs(dx),Math.abs(dy))>20)change(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"));touch=null},{passive:true});
 updateScore();reset();
 })();
 </script>
